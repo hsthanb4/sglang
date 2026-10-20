@@ -112,17 +112,12 @@ def _fuses_routed_scaling_factor_in_topk(quant_method, runner_backend) -> bool:
         or (
             runner_backend is not None
             and (
-                isinstance(quant_method, Fp8MoEMethod)
-                and (
-                    runner_backend.is_cutlass()
-                    or runner_backend.is_flashinfer_trtllm()
-                    or runner_backend.is_flashinfer_trtllm_routed()
-                )
-                or isinstance(quant_method, UnquantizedFusedMoEMethod)
-                and (
-                    runner_backend.is_flashinfer_trtllm()
-                    or runner_backend.is_flashinfer_trtllm_routed()
-                )
+                # Materialized TRT-LLM routes carry the final weights, including
+                # when a quantization wrapper delegates to a layer-owned scheme.
+                runner_backend.is_flashinfer_trtllm()
+                or runner_backend.is_flashinfer_trtllm_routed()
+                or isinstance(quant_method, Fp8MoEMethod)
+                and runner_backend.is_cutlass()
             )
         )
     )
@@ -1893,6 +1888,7 @@ def fused_moe_bypassed_piecewise_cuda_graph_impl(
             correction_bias=correction_bias,
             renormalize=renormalize,
             allow_routed_experts_capture=allow_routed_experts_capture,
+            layer_id=layer_id,
         ),
     )
     forward_context = get_tc_piecewise_forward_context()

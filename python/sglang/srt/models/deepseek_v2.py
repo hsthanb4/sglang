@@ -1027,12 +1027,12 @@ class DeepseekV2MoE(nn.Module):
             and hidden_states.shape[0] > 0
             and hasattr(self, "shared_experts")
             and getattr(self.experts, "use_flashinfer_trtllm_moe", False)
+            and self.topk.topk_config.output_format == TopKOutputFormat.BYPASSED
             and not self._enable_a2a_moe
             and not self._fuse_shared_experts_inside_sbo
             and not getattr(self, "is_hash", False)
             and not is_expert_remapping_enabled()
             and get_exec().moe.ep_dispatch_algorithm not in ("fake", "lp")
-            and self.topk.topk_config.output_format == TopKOutputFormat.BYPASSED
         )
 
     def forward(
